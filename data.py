@@ -17,28 +17,28 @@ __all__ = [
 # Borrowed from this repo
 #    https://github.com/kamenbliznashki/normalizing_flows
 
-def sample_2d(dataset, n_samples):
+def sample_2d(dataset, n_samples, **kwargs):
 
-    z = torch.randn(n_samples, 2)
+    z = torch.randn(n_samples, 2, **kwargs)
 
     if dataset == '8gaussians':
         scale = 4
         sq2 = 1/math.sqrt(2)
         centers = [(1,0), (-1,0), (0,1), (0,-1), (sq2,sq2), (-sq2,sq2), (sq2,-sq2), (-sq2,-sq2)]
         centers = torch.tensor([(scale * x, scale * y) for x,y in centers])
-        return sq2 * (0.5 * z + centers[torch.randint(len(centers), size=(n_samples,))])
+        return sq2 * (0.5 * z + centers[torch.randint(len(centers), size=(n_samples,), **kwargs)])
 
     elif dataset == '2spirals':
-        n = torch.sqrt(torch.rand(n_samples // 2)) * 540 * (2 * math.pi) / 360
-        d1x = - torch.cos(n) * n + torch.rand(n_samples // 2) * 0.5
-        d1y =   torch.sin(n) * n + torch.rand(n_samples // 2) * 0.5
+        n = torch.sqrt(torch.rand(n_samples // 2, **kwargs)) * 540 * (2 * math.pi) / 360
+        d1x = - torch.cos(n) * n + torch.rand(n_samples // 2, **kwargs) * 0.5
+        d1y =   torch.sin(n) * n + torch.rand(n_samples // 2, **kwargs) * 0.5
         x = torch.cat([torch.stack([ d1x,  d1y], dim=1),
                        torch.stack([-d1x, -d1y], dim=1)], dim=0) / 3
         return x + 0.1*z
 
     elif dataset == 'checkerboard':
-        x1 = torch.rand(n_samples) * 4 - 2
-        x2_ = torch.rand(n_samples) - torch.randint(0, 2, (n_samples,), dtype=torch.float) * 2
+        x1 = torch.rand(n_samples, **kwargs) * 4 - 2
+        x2_ = torch.rand(n_samples, **kwargs) - torch.randint(0, 2, (n_samples,), dtype=torch.float, **kwargs) * 2
         x2 = x2_ + x1.floor() % 2
         return torch.stack([x1, x2], dim=1) * 2
 
@@ -65,10 +65,10 @@ def sample_2d(dataset, n_samples):
                          torch.cat([circ4_y, circ3_y, circ2_y, circ1_y])], dim=1) * 3.0
 
         # random sample
-        x = x[torch.randint(0, n_samples, size=(n_samples,))]
+        x = x[torch.randint(0, n_samples, size=(n_samples,), **kwargs)]
 
         # Add noise
-        return x + torch.normal(mean=torch.zeros_like(x), std=0.08*torch.ones_like(x))
+        return x + torch.normal(mean=torch.zeros_like(x), std=0.08*torch.ones_like(x), **kwargs)
 
     else:
         raise RuntimeError('Invalid `dataset` to sample from.')
