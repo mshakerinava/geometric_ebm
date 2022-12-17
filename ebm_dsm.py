@@ -36,6 +36,7 @@ from data import sample_2d
 EPS = 1e-6
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--cpu', action='store_false', dest='gpu', help='Only use CPUs')
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--epochs', type=int, default=50)
 parser.add_argument('--lr', type=float, default=1e-3)
@@ -49,7 +50,7 @@ args = parser.parse_args()
 
 print(json.dumps(vars(args), indent=4, sort_keys=True))
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cuda' if args.gpu and torch.cuda.is_available() else 'cpu')
 
 EXPERIMENT_ID = '%s_%s_%s' % (args.dataset, args.manifold, datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
 
