@@ -463,7 +463,7 @@ def tweedie(x, net, t, manifold):
 def annealed_langevin_sample(x0, t_sched, net, step_size_sched, n_steps, save_dir, manifold, metropolis_adjusted=False, tweedie=True):
     x = x0
     for step in tqdm(range(n_steps)):
-        plot_samples(x, net, t_sched(step), args.manifold, path.join(save_dir, '%05d.png' % step))
+        # plot_samples(x, net, t_sched(step), args.manifold, path.join(save_dir, '%05d.png' % step))
         if metropolis_adjusted:
             x = metropolis_adjusted_langevin_step(x, t_sched(step), net, step_size_sched(step))
         else:
