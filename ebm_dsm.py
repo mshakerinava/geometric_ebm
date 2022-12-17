@@ -47,6 +47,8 @@ parser.add_argument('--max_noise', type=float, default=1)
 parser.add_argument('--seed', type=int, default=6597103364)
 args = parser.parse_args()
 
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 EXPERIMENT_ID = '%s_%s_%s' % (args.dataset, args.manifold, datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
 
 TOY_DATASETS = {'2spirals', 'checkerboard', 'rings', '8gaussians'}
@@ -174,7 +176,7 @@ if args.dataset in TOY_DATASETS:
     else:
         assert False
 
-    net = Network(EnergyNet(in_width=in_width, manifold=manifold)).to(args.device)
+    net = Network(EnergyNet(in_width=in_width, manifold=manifold)).to(DEVICE)
 
 
 print('Number of parameters: %d' % net.count_parameters())
@@ -213,8 +215,8 @@ def plot_energy(ax, net, t, W=6.9):
     X, Y = meshgrid(x, y)
     data = np.concatenate([X.reshape(-1, 1), Y.reshape(-1, 1)], axis=1)
     with torch.no_grad():
-        data = torch.tensor(data, dtype=torch.float32, device=args.device)
-        t_tensor = torch.ones(data.shape[0], device=args.device) * t
+        data = torch.tensor(data, dtype=torch.float32, device=DEVICE)
+        t_tensor = torch.ones(data.shape[0], device=DEVICE) * t
         Z = net(data, t_tensor).cpu().numpy().reshape(k, k)
     im = ax.imshow(Z, cmap=cm.RdBu, extent=[-W, W, -W, W], origin='lower')
     ax.set_title('Estimated Energy (t=%.2f)' % t)
@@ -229,9 +231,9 @@ def plot_energy_torus(ax, net, t, W=4):
     X, Y = meshgrid(x, y)
     data = np.concatenate([X.reshape(-1, 1), Y.reshape(-1, 1)], axis=1)
     with torch.no_grad():
-        data = torch.tensor(data, dtype=torch.float32, device=args.device)
+        data = torch.tensor(data, dtype=torch.float32, device=DEVICE)
         data = plane_to_torus(data)
-        t_tensor = torch.ones(data.shape[0], device=args.device) * t
+        t_tensor = torch.ones(data.shape[0], device=DEVICE) * t
         Z = net(data, t_tensor).cpu().numpy().reshape(k, k)
     im = ax.imshow(Z, cmap=cm.RdBu, extent=[-W, W, -W, W], origin='lower')
     # ax.set_title('Estimated Energy (t=%.2f)' % t)
@@ -247,8 +249,8 @@ def plot_energy_hemisphere(ax, net, t):
     Z = np.sqrt(np.maximum(1 - X ** 2 - Y ** 2, 0))
     data = np.concatenate([X.reshape(-1, 1), Y.reshape(-1, 1), Z.reshape(-1, 1)], axis=1)
     with torch.no_grad():
-        data = torch.tensor(data, dtype=torch.float32, device=args.device)
-        t_tensor = torch.ones(data.shape[0], device=args.device) * t
+        data = torch.tensor(data, dtype=torch.float32, device=DEVICE)
+        t_tensor = torch.ones(data.shape[0], device=DEVICE) * t
         Z = net(data, t_tensor).cpu().numpy().reshape(k, k)
     im = ax.imshow(Z, cmap=cm.RdBu, extent=[-1.1, 1.1, -1.1, 1.1], origin='lower')
     # ax.set_title('Estimated Energy (t=%.2f)' % t)
@@ -262,7 +264,7 @@ def plot_score(ax, net, t, **kwargs):
         'linewidth': 0.4
     }
     _kwargs.update(kwargs)
-    x = torch.randn(1000, 2, device=args.device)
+    x = torch.randn(1000, 2, device=DEVICE)
     x, y = regular_points_on_sphere(30)
     x = x.reshape(-1)
     y = y.reshape(-1)
@@ -362,7 +364,7 @@ while True:
     for x in train_loader:
         if args.dataset == 'mnist':
             x = x[0]
-        x = x.to(args.device)
+        x = x.to(DEVICE)
 
         if args.manifold == 'sphere':
             x = project_on_sphere(x)
@@ -373,7 +375,7 @@ while True:
         else:
             raise ValueError('Unknown manifold %s' % args.manifold)
 
-        t = args.min_noise + (args.max_noise - args.min_noise) * torch.rand(x.shape[0], device=args.device)
+        t = args.min_noise + (args.max_noise - args.min_noise) * torch.rand(x.shape[0], device=DEVICE)
         noisy_x, noise = add_noise(x, noise_strengths=t, manifold=manifold)
         noisy_x = noisy_x.requires_grad_()
         energy_pred = net(noisy_x, t)
@@ -439,7 +441,7 @@ def unadjusted_langevin_step(x, t, net, step_size, manifold):
 def metropolis_adjusted_langevin_step(x, t, net, step_size):
     t = torch.ones(x.shape[0], device=x.device) * t
     x_ = unadjusted_langevin_step(x, t, net, step_size)
-    u = torch.rand((x.shape[0], 1), device=args.device)
+    u = torch.rand((x.shape[0], 1), device=DEVICE)
     k = langevin_step_logp(x, x_, t, net, step_size) + net(x, t) - langevin_step_logp(x_, x, t, net, step_size) - net(x_, t)
     c = (torch.exp(k) < u) * 1.0
     x_ = c * x_ + (1 - c) * x 
@@ -483,7 +485,7 @@ T = 240
 # t_sched = lambda step: (args.min_noise / args.max_noise) ** ((step // T) / (L - 1)) * args.max_noise
 
 if args.manifold == 'euclidean':
-    x0 = torch.rand((n, 2), device=args.device) * 8 - 4
+    x0 = torch.rand((n, 2), device=DEVICE) * 8 - 4
 else:
     if args.manifold == 'sphere':
         d = 3
