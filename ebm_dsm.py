@@ -455,7 +455,7 @@ def tweedie(x, net, t, manifold):
     energy_pred = net(x, t)
     score = -torch.autograd.grad(energy_pred.sum(), x, create_graph=True)[0]
     score = manifold.proju(x=x, u=score)
-    step = (t ** 2) * score
+    step = (t ** 2)[:, None] * score
     x = manifold.expmap(x, step)
     return x
 
