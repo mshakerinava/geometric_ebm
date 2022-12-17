@@ -67,7 +67,7 @@ else:
     assert False
 
 
-def project_on_sphere(x, r=5):
+def project_on_sphere(x, r=6):
     z = torch.sqrt(r ** 2 - x[:, 0] ** 2 - x[:, 1] ** 2)
     return torch.stack((x[:, 0], x[:, 1], z), dim=1) / r
 
