@@ -37,7 +37,7 @@ EPS = 1e-6
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--epochs', type=int, default=50)
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--dataset', type=str, choices=['2spirals', 'checkerboard', 'rings', '8gaussians'])
 parser.add_argument('--manifold', type=str, choices=['euclidean', 'sphere', 'torus'])
@@ -46,6 +46,8 @@ parser.add_argument('--min_noise', type=float, default=0.01)
 parser.add_argument('--max_noise', type=float, default=1)
 parser.add_argument('--seed', type=int, default=6597103364)
 args = parser.parse_args()
+
+print(json.dumps(vars(args), indent=4, sort_keys=True))
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -199,7 +201,7 @@ def plot_score_sphere(ax, net, t, manifold, **kwargs): # TODO: why does this tak
     data = np.concatenate([x[:, None], y[:, None], z[:, None]], axis=1)
     data = torch.tensor(data, dtype=torch.float32)
     data = data.requires_grad_()
-    u = -torch.autograd.grad(net(data, t).sum(), data, create_graph=False)[0]
+    u = -autograd.grad(net(data, t).sum(), data, create_graph=False)[0]
     u = manifold.proju(x=data, u=u)
     u = u.detach().cpu().numpy()
     ax.quiver(x, y, z, u[:, 0], u[:, 1], u[:, 2], **_kwargs)
@@ -219,7 +221,9 @@ def plot_energy(ax, net, t, W=6.9):
         t_tensor = torch.ones(data.shape[0], device=DEVICE) * t
         Z = net(data, t_tensor).cpu().numpy().reshape(k, k)
     im = ax.imshow(Z, cmap=cm.RdBu, extent=[-W, W, -W, W], origin='lower')
-    ax.set_title('Estimated Energy (t=%.2f)' % t)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    # ax.set_title('Estimated Energy (t=%.2f)' % t)
 
 
 def plot_energy_torus(ax, net, t, W=4):
@@ -236,6 +240,8 @@ def plot_energy_torus(ax, net, t, W=4):
         t_tensor = torch.ones(data.shape[0], device=DEVICE) * t
         Z = net(data, t_tensor).cpu().numpy().reshape(k, k)
     im = ax.imshow(Z, cmap=cm.RdBu, extent=[-W, W, -W, W], origin='lower')
+    ax.set_xticks([])
+    ax.set_yticks([])
     # ax.set_title('Estimated Energy (t=%.2f)' % t)
 
 
@@ -253,6 +259,8 @@ def plot_energy_hemisphere(ax, net, t):
         t_tensor = torch.ones(data.shape[0], device=DEVICE) * t
         Z = net(data, t_tensor).cpu().numpy().reshape(k, k)
     im = ax.imshow(Z, cmap=cm.RdBu, extent=[-1.1, 1.1, -1.1, 1.1], origin='lower')
+    ax.set_xticks([])
+    ax.set_yticks([])
     # ax.set_title('Estimated Energy (t=%.2f)' % t)
 
 
@@ -272,7 +280,7 @@ def plot_score(ax, net, t, **kwargs):
     data = np.concatenate([x[:, None], y[:, None], z[:, None]], axis=1)
     data = torch.tensor(data, dtype=torch.float32)
     data = data.requires_grad_()
-    u = -torch.autograd.grad(net(data, t).sum(), data, create_graph=False)[0]
+    u = -autograd.grad(net(data, t).sum(), data, create_graph=False)[0]
     u = manifold.proju(x=data, u=u)
     u = u.detach().cpu().numpy()
     ax.quiver(x, y, z, u[:, 0], u[:, 1], u[:, 2], **_kwargs)
@@ -379,7 +387,7 @@ while True:
         noisy_x, noise = add_noise(x, noise_strengths=t, manifold=manifold)
         noisy_x = noisy_x.requires_grad_()
         energy_pred = net(noisy_x, t)
-        score = -torch.autograd.grad(energy_pred.sum(), noisy_x, create_graph=True)[0]
+        score = -autograd.grad(energy_pred.sum(), noisy_x, create_graph=True)[0]
         score = manifold.proju(x=noisy_x, u=score)
         t_ = t.unsqueeze(1)
         loss = torch.sum((t_ * score + noise / t_) ** 2) / (2 * args.batch_size)
@@ -418,7 +426,7 @@ pbar.close()
 def langevin_step_logp(x_, x, t, net, step_size, manifold):
     x = x.requires_grad_()
     energy_pred = net(x, t)
-    score = -torch.autograd.grad(energy_pred.sum(), x, create_graph=True)[0]
+    score = -autograd.grad(energy_pred.sum(), x, create_graph=True)[0]
     if manifold is not None:
         score = manifold.proju(x=noisy_x, u=score)
     next_dist = torch.distributions.normal.Normal(loc=x + 0.5 * step_size * score, scale=np.sqrt(step_size))
@@ -429,7 +437,7 @@ def unadjusted_langevin_step(x, t, net, step_size, manifold):
     t = torch.ones(x.shape[0], device=x.device) * t
     x = x.requires_grad_()
     energy_pred = net(x, t)
-    score = -torch.autograd.grad(energy_pred.sum(), x, create_graph=True)[0]
+    score = -autograd.grad(energy_pred.sum(), x, create_graph=True)[0]
     score = manifold.proju(x=x, u=score)
     step = 0.5 * step_size * score
     x = manifold.expmap(x, step)
@@ -453,14 +461,14 @@ def tweedie(x, net, t, manifold):
     t = torch.ones(x.shape[0], device=x.device) * t
     x = x.requires_grad_()
     energy_pred = net(x, t)
-    score = -torch.autograd.grad(energy_pred.sum(), x, create_graph=True)[0]
+    score = -autograd.grad(energy_pred.sum(), x, create_graph=True)[0]
     score = manifold.proju(x=x, u=score)
     step = (t ** 2)[:, None] * score
     x = manifold.expmap(x, step)
     return x
 
 
-def annealed_langevin_sample(x0, t_sched, net, step_size_sched, n_steps, save_dir, manifold, metropolis_adjusted=False, use_tweedie=True):
+def annealed_langevin_sample(x0, t_sched, net, step_size_sched, n_steps, save_dir, manifold, metropolis_adjusted=False, use_tweedie=False):
     x = x0
     for step in tqdm(range(n_steps)):
         # plot_samples(x, net, t_sched(step), args.manifold, path.join(save_dir, '%05d.png' % step))
