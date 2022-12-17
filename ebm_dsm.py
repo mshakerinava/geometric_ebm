@@ -112,17 +112,6 @@ def regular_points_on_sphere(n):
     return x, y, z
 
 
-def plot_sphere(ax, n=40, **kwargs):
-    _kwargs = {
-        'color': 'r',
-        'alpha': 0.2,
-        'linewidth': 0.5
-    
-    _kwargs.update(kwargs)
-    x, y, z = regular_points_on_sphere(n)
-    ax.plot_wireframe(x, y, z, **_kwargs)
-
-
 class Network(nn.Module):
     ''' Wraps around a neural network and adds methods such as `save`, `load`, and `run`. '''
     def __init__(self, net_body):
