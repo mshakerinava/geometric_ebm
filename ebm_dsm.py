@@ -279,14 +279,14 @@ def plot_score(ax, net, t, **kwargs):
     # ax.set_title('Estimated Score (t=%.2f)' % t)
 
 
-def plot_samples(x_hat, net, t, manifold_name, save_path=None, plot_data=True, plot_energy=True, display=False):
+def plot_samples(x_hat, net, t, manifold_name, save_path=None, plot_data=True, do_plot_energy=True, display=False):
     g_cpu = torch.Generator().manual_seed(args.seed)
     x_data = sample_2d(args.dataset, 1000, generator=g_cpu)
 
     fig = plt.figure(figsize=(6, 6))
     ax = fig.add_subplot(111)
 
-    if plot_energy:
+    if do_plot_energy:
         if manifold_name == 'euclidean':
             plot_energy(ax, net, t)
         elif manifold_name == 'torus':
