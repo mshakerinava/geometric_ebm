@@ -73,16 +73,16 @@ def project_on_sphere(x, r=5):
 
 
 def plane_to_torus(x, r=4):
-    x1 = np.sin(x[:, 0] / r * np.pi)
-    y1 = np.cos(x[:, 0] / r * np.pi)
-    x2 = np.sin(x[:, 1] / r * np.pi)
-    y2 = np.cos(x[:, 1] / r * np.pi)
+    x1 = torch.sin(x[:, 0] / r * np.pi)
+    y1 = torch.cos(x[:, 0] / r * np.pi)
+    x2 = torch.sin(x[:, 1] / r * np.pi)
+    y2 = torch.cos(x[:, 1] / r * np.pi)
     return torch.stack((x1, y1, x2, y2), dim=1)
 
 
 def torus_to_plane(x, r=4):
-    x1 = np.arctan2(x[:, 0], x[:, 1]) / np.pi * r
-    x2 = np.arctan2(x[:, 2], x[:, 3]) / np.pi * r
+    x1 = torch.arctan2(x[:, 0], x[:, 1]) / np.pi * r
+    x2 = torch.arctan2(x[:, 2], x[:, 3]) / np.pi * r
     return torch.stack((x1, x2), dim=1)
 
 
