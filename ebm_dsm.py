@@ -477,8 +477,8 @@ def annealed_langevin_sample(x0, t_sched, net, step_size_sched, n_steps, save_di
 
 
 sampling_dir = 'sampling_%s_%s' % (args.dataset, args.manifold)
-shutil.rmtree(sampling_dir, ignore_errors=True)
-os.makedirs(sampling_dir, exist_ok=True)
+# shutil.rmtree(sampling_dir, ignore_errors=True)
+# os.makedirs(sampling_dir, exist_ok=True)
 
 n = 1000
 T = 240
