@@ -460,7 +460,7 @@ def tweedie(x, net, t, manifold):
     return x
 
 
-def annealed_langevin_sample(x0, t_sched, net, step_size_sched, n_steps, save_dir, manifold, metropolis_adjusted=False, tweedie=True):
+def annealed_langevin_sample(x0, t_sched, net, step_size_sched, n_steps, save_dir, manifold, metropolis_adjusted=False, use_tweedie=True):
     x = x0
     for step in tqdm(range(n_steps)):
         # plot_samples(x, net, t_sched(step), args.manifold, path.join(save_dir, '%05d.png' % step))
@@ -470,7 +470,7 @@ def annealed_langevin_sample(x0, t_sched, net, step_size_sched, n_steps, save_di
             x = unadjusted_langevin_step(x, t_sched(step), net, step_size_sched(step), manifold)
         assert torch.allclose(manifold.projx(x), x)
 
-    if tweedie:
+    if use_tweedie:
         x = tweedie(x, net, t_sched(n_steps), manifold)
 
     return x
