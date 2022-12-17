@@ -392,7 +392,7 @@ while True:
     loss_list.append(running_loss / cnt)
     pbar.set_description(f'Loss: {loss_list[-1]:.4f}')
     pbar.update(1)
-    net.save('ebm_%s_%s.tar' % (args.manifold, args.dataset))
+    # net.save('ebm_%s_%s.tar' % (args.manifold, args.dataset))
     epoch += 1
 
 pbar.close()
@@ -493,7 +493,7 @@ else:
         d = 4
     else:
         assert False
-    x0 = manifold.random((n, d))
+    x0 = manifold.random((n, d)).to(DEVICE)
 
 x_hat = annealed_langevin_sample(
     x0=x0,
