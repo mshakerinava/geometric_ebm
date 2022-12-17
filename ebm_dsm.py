@@ -504,7 +504,7 @@ x_hat = annealed_langevin_sample(
     save_dir=sampling_dir,
     manifold=manifold,
     metropolis_adjusted=False
-).cpu()
+).detach().cpu()
 
 
 s = sampling_dir
