@@ -37,7 +37,7 @@ EPS = 1e-6
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=256)
-parser.add_argument('--epochs', type=int, default=50)
+parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--dataset', type=str, choices=['2spirals', 'checkerboard', 'rings', '8gaussians'])
 parser.add_argument('--manifold', type=str, choices=['euclidean', 'sphere', 'torus'])
